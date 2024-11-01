@@ -46,8 +46,22 @@ function reconnect() {
 // API endpoint to send a message
 app.post('/chat', (req, res) => {
   const message = req.body.message;
+  
   if (message) {
-    bot.chat(message);
+    if (message === "forward") {
+      // Move forward
+      console.log("moving forward");
+      bot.setControlState('forward', true); // Start moving forward
+      
+      // Stop moving forward after 2 seconds
+      setTimeout(() => {
+        bot.setControlState('forward', false);
+      }, 2000);
+    } else {
+      // Handle other messages
+      bot.chat(message); // Send the received message to Minecraft chat
+    }
+    
     res.status(200).send({ status: 'Message sent', message });
   } else {
     res.status(400).send({ status: 'Error', message: 'No message provided' });
