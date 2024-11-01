@@ -1,18 +1,18 @@
 const mineflayer = require('mineflayer');
-const { Client } = require('minecraft-protocol');
 
 // Create the bot
 const bot = mineflayer.createBot({
-  host: 'Rafipilot.aternos.me', // Replace with your Aternos server address
-  port: 25565, // Default port, change if necessary
-  username: 'Rafipilot', // Replace with your Microsoft email
+  host: 'Rafipilot.aternos.me', // Your Aternos server address
+  port: 25565, // Default port
+  username: 'Rafipilot', // Your Microsoft email
   auth: 'microsoft', // Use Microsoft authentication
-  version: '1.21.1' // Specify your server version (e.g., '1.16.4')
+  version: '1.21.1' // Your server version
 });
 
 // Event handlers
 bot.on('spawn', () => {
   console.log('Bot has spawned and is online!');
+  bot.chat('Hello, I am a bot!'); // Print a message in minecraft chat
 });
 
 bot.on('error', (err) => {
@@ -21,20 +21,18 @@ bot.on('error', (err) => {
 
 bot.on('end', () => {
   console.log('Bot has been disconnected. Attempting to reconnect...');
-  // Optionally, you can try to reconnect after disconnection
-  setTimeout(() => {
-    reconnect();
-  }, 5000); // 5 seconds delay before reconnecting
+  reconnect();
 });
 
 // Function to reconnect
 function reconnect() {
+  // Use the same credentials to reconnect
   const newBot = mineflayer.createBot({
-    host: 'Rafipilot.aternos.me', // Replace with your Aternos server address
-    port: 25565, // Default port, change if necessary
-    username: 'Rafipilot', // Replace with your Microsoft email
-    auth: 'microsoft', // Use Microsoft authentication
-    version: '1.21.1' // Specify your server version (e.g., '1.16.4')
+    host: 'Rafipilot.aternos.me', // Ensure you use the same server address
+    port: 25565,
+    username: 'Rafipilot', // Use your Microsoft email again
+    auth: 'microsoft',
+    version: '1.21.1' // Same version as before
   });
 
   newBot.on('spawn', () => {
@@ -50,3 +48,5 @@ function reconnect() {
     setTimeout(reconnect, 5000); // Retry every 5 seconds
   });
 }
+
+
