@@ -2,11 +2,11 @@ const mineflayer = require('mineflayer');
 
 // Create the bot
 const bot = mineflayer.createBot({
-  host: 'Rafipilot.aternos.me', // Your Aternos server address
-  port: 25565, // Default port
-  username: 'Rafipilot', // Your Microsoft email
-  auth: 'microsoft', // Use Microsoft authentication
-  version: '1.21.1' // Your server version
+  host: 'Rafipilot.aternos.me', 
+  port: 25565, 
+  username: 'Rafipilot', 
+  auth: 'microsoft', 
+  version: '1.21.1' 
 });
 
 // Event handlers
@@ -28,11 +28,11 @@ bot.on('end', () => {
 function reconnect() {
   // Use the same credentials to reconnect
   const newBot = mineflayer.createBot({
-    host: 'Rafipilot.aternos.me', // Ensure you use the same server address
+    host: 'Rafipilot.aternos.me', 
     port: 25565,
-    username: 'Rafipilot', // Use your Microsoft email again
+    username: 'Rafipilot',
     auth: 'microsoft',
-    version: '1.21.1' // Same version as before
+    version: '1.21.1' 
   });
 
   newBot.on('spawn', () => {
