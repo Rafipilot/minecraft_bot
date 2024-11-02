@@ -1,13 +1,50 @@
-import requests
+from javascript import require, On, Once, AsyncTask, once, off
 
-def send_message(message):
-    url = 'http://localhost:3000/chat'
-    response = requests.post(url, json={'message': message})
-    if response.status_code == 200:
-        print('Message sent successfully:', response.json())
-    else:
-        print('Failed to send message:', response.json())
+# Import the javascript libraries
+mineflayer = require("mineflayer")
+
+# Create bot
+bot_args = {"username": "reconnect-bot", "host": "localhost", "port": 3000, "version": "1.19.4", "hideErrors": False}
+
+reconnect = True
+
+def start_bot():
+    bot = mineflayer.createBot(bot_args)
+
+    # Login event (Logged in)
+    @On(bot, "login")
+    def login(this):
+        bot_socket = bot._client.socket
+        print(
+            f"Logged in to {bot_socket.server if bot_socket.server else bot_socket._host }"
+        )
+
+    # Kicked event (Got kicked from server)
+    @On(bot, "kicked")
+    def kicked(this, reason, loggedIn):
+        if loggedIn:
+            print(f"Kicked whilst trying to connect: {reason}")
+
+    # Chat event (Received message in chat)
+    @On(bot, "messagestr")
+    def messagestr(this, message, messagePosition, jsonMsg, sender, verified):
+        if messagePosition == "chat" and "quit" in message:
+            global reconnect
+            reconnect = False
+            this.quit()
+
+    # End event (Disconnected from server)
+    @On(bot, "end")
+    def end(this, reason):
+        print(f"Disconnected: {reason}")
+        off(bot, "login", login)
+        off(bot, "kicked", kicked)
+        off(bot, "messagestr", messagestr)
+        if reconnect:
+            print("RESTARTING BOT")
+            start_bot()
+        off(bot, "end", end)
 
 
-message = input("Enter a message for the bot: ")
-send_message(message)
+# Run function that starts the bot
+start_bot()
