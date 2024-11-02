@@ -91,6 +91,25 @@ class Bot:
                         self.bot.lookAt(player_location)
                     else:
                         self.log(f"Player not found.")
+                    
+                # Look at coords
+                elif "look at coords" in message:
+
+                    # Find all nearby players
+                    x, y, z = message.split(" ")[-3:]
+
+                    # Feedback
+                    block_vec3 = vec3(x, y, z)
+                    self.log(chalk.magenta(vec3_to_str(block_vec3)))
+                    self.bot.lookAt(block_vec3, True)
+
+                # Say which block the bot is looking at
+                elif "what do you see" in message:
+                    block = self.bot.blockAtCursor()
+                    if block:
+                        self.bot.chat(f"Looking at {block.displayName}")
+                    else:
+                        self.bot.chat("Looking at air")
         # End event: Triggers on disconnect from server
         @On(self.bot, "end")
         def end(this, reason):
