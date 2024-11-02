@@ -24,8 +24,6 @@ class Bot:
     def log(self, message):
         print(self.bot.username, message)
 
-        self.start_events()
-
         # Start mineflayer bot
     def start_bot(self):
         self.bot = mineflayer.createBot(self.bot_args)
