@@ -4,6 +4,8 @@ from random import randint
 
 mineflayer = require("mineflayer")
 mineflayer_pathfinder = require("mineflayer-pathfinder")
+
+
 vec3 = require("vec3")
 
 server_host = "localhost" #Note: we can change to server later
@@ -14,6 +16,10 @@ bot_name = "aolabs"
 
 def vec3_to_str(v):
     return f"x: {v['x']:.3f}, y: {v['y']:.3f}, z: {v['z']:.3f}"
+
+
+
+
 
 
 class Bot:
@@ -51,6 +57,64 @@ class Bot:
         except Exception as e:
             self.log(f"Error while trying to run pathfind_to_goal: {e}")
 
+
+    def go_to_player(self, player):
+    
+        # Find all nearby players
+        local_players = self.bot.players
+
+        # Search for our specific player
+        for el in local_players:
+            player_data = local_players[el]
+            if player_data["uuid"] == player:
+                vec3_temp = local_players[el].entity.position
+                player_location = vec3(
+                    vec3_temp["x"], vec3_temp["y"] + 1, vec3_temp["z"]
+                )
+
+        # Feedback
+        if player_location:
+            self.log(
+                chalk.magenta(
+                    f"Pathfinding to player at {vec3_to_str(player_location)}"
+                )
+            )
+            self.pathfind_to_goal(player_location)
+        else:
+            self.log(f"Player not found.")
+
+    def find_closest_block(self, block_name):
+        #self.log("Searching for ", block_name)
+        # Get the bot's current position
+        current_position = self.bot.entity.position
+        
+        # Define search radius
+        radius = 10  # You can adjust this as needed
+        
+        closest_block = None
+        closest_distance = float('inf')
+
+        # Scan for blocks in the vicinity
+        for x in range(int(current_position.x) - radius, int(current_position.x) + radius + 1):
+            for y in range(int(current_position.y) - radius, int(current_position.y) + radius + 1):
+                for z in range(int(current_position.z) - radius, int(current_position.z) + radius + 1):
+                    block = self.bot.blockAt(vec3(x, y, z))
+
+                    if block and block.name == block_name:
+                        # Calculate distance to the block
+                        distance = current_position.distanceTo(block.position)
+                        if distance < closest_distance:
+                            closest_distance = distance
+                            closest_block = block.position
+
+        if closest_block:
+            self.log(chalk.magenta(f"Closest {block_name} found at {vec3_to_str(closest_block)}"))
+            return closest_block
+        else:
+            self.log(f"{block_name} not found within radius {radius}.")
+            return None
+
+
     def start_events(self):
 
         @On(self.bot, "login")
@@ -74,6 +138,7 @@ class Bot:
             if loggedIn:
                 self.log(chalk.redBright(f"Kicked whilst trying to connect: {reason}"))
 
+
             # Chat event: Triggers on chat message
         @On(self.bot, "messagestr")
         def messagestr(this, message, messagePosition, jsonMsg, sender, verified=None):
@@ -82,13 +147,6 @@ class Bot:
                     self.bot.chat("Goodbye!")
                     self.reconnect = False
                     this.quit()
-                elif "flip a coin" in message:
-                    if randint(1, 2) == 1:
-                        self.bot.chat("Heads!")
-                    else:
-                        self.bot.chat("Tails!")
-                elif "roll a dice" in message:
-                    self.bot.chat(f"You rolled {randint(1, 6)}")
 
                 elif "look at me" in message:
                     local_players = self.bot.players
@@ -126,33 +184,19 @@ class Bot:
                     else:
                         self.bot.chat("Looking at air")
 
-                elif "move forward" in message:
-                    self.bot.setControlState("forward", True)
-
                 elif "come to me" in message:
+                    self.go_to_player(sender)
 
-                    # Find all nearby players
-                    local_players = self.bot.players
+                elif "find" in message:
 
-                    # Search for our specific player
-                    for el in local_players:
-                        player_data = local_players[el]
-                        if player_data["uuid"] == sender:
-                            vec3_temp = local_players[el].entity.position
-                            player_location = vec3(
-                                vec3_temp["x"], vec3_temp["y"] + 1, vec3_temp["z"]
-                            )
-
-                    # Feedback
-                    if player_location:
-                        self.log(
-                            chalk.magenta(
-                                f"Pathfinding to player at {vec3_to_str(player_location)}"
-                            )
-                        )
-                        self.pathfind_to_goal(player_location)
+                    words = message.split()
+                    if len(words)>1:
+                        block = words[2]
+                        x = self.find_closest_block(block)
+                        self.pathfind_to_goal(x)
                     else:
-                        self.log(f"Player not found.")
+                        self.log("Please ask a block to find")
+
         # End event: Triggers on disconnect from server
         @On(self.bot, "end")
         def end(this, reason):
@@ -173,4 +217,3 @@ class Bot:
             off(self.bot, "end", end)
 
 
-ao_bot = Bot()
