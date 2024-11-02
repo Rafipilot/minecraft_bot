@@ -3,6 +3,7 @@ from simple_chalk import chalk
 from random import randint
 
 mineflayer = require("mineflayer")
+mineflayer_pathfinder = require("mineflayer-pathfinder")
 vec3 = require("vec3")
 
 server_host = "localhost" #Note: we can change to server later
@@ -34,7 +35,21 @@ class Bot:
     def start_bot(self):
         self.bot = mineflayer.createBot(self.bot_args)
 
+        self.bot.loadPlugin(mineflayer_pathfinder.pathfinder)
+
         self.start_events()
+
+        # Mineflayer: Pathfind to goal
+    def pathfind_to_goal(self, goal_location):
+        try:
+            self.bot.pathfinder.setGoal(
+                mineflayer_pathfinder.pathfinder.goals.GoalNear(
+                    goal_location["x"], goal_location["y"], goal_location["z"], 1
+                )
+            )
+
+        except Exception as e:
+            self.log(f"Error while trying to run pathfind_to_goal: {e}")
 
     def start_events(self):
 
@@ -110,6 +125,34 @@ class Bot:
                         self.bot.chat(f"Looking at {block.displayName}")
                     else:
                         self.bot.chat("Looking at air")
+
+                elif "move forward" in message:
+                    self.bot.setControlState("forward", True)
+
+                elif "come to me" in message:
+
+                    # Find all nearby players
+                    local_players = self.bot.players
+
+                    # Search for our specific player
+                    for el in local_players:
+                        player_data = local_players[el]
+                        if player_data["uuid"] == sender:
+                            vec3_temp = local_players[el].entity.position
+                            player_location = vec3(
+                                vec3_temp["x"], vec3_temp["y"] + 1, vec3_temp["z"]
+                            )
+
+                    # Feedback
+                    if player_location:
+                        self.log(
+                            chalk.magenta(
+                                f"Pathfinding to player at {vec3_to_str(player_location)}"
+                            )
+                        )
+                        self.pathfind_to_goal(player_location)
+                    else:
+                        self.log(f"Player not found.")
         # End event: Triggers on disconnect from server
         @On(self.bot, "end")
         def end(this, reason):
