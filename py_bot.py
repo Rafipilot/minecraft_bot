@@ -270,10 +270,8 @@ class Bot:
 
 bot = Bot()
 time.sleep(5)
+previous_distance_to_goal_x  = None
 while True:
-
-
-    previous_distance_to_goal_x  = None
     goal_pos = bot.find_closest_block("spruce_log") 
     bot_pos = bot.bot.entity.position
     bot_x = bot_pos.x
@@ -285,32 +283,34 @@ while True:
     lava_x = lava_pos.x
     distance_to_lava_x = abs(lava_x-bot_x)
 
+    if distance_to_lava_x < 1:
+        magma_input = [1]
+    else:
+        magma_input = [0]
+
+    print("distancce to goal(X): ",distance_to_goal_x)
+    print("distance to magma: ", distance_to_lava_x)
+
     response = agent.next_state( INPUT=magma_input, print_result=False)
     response = response.tolist()
     print("response: ", response)
     
     bot.move(response)
 
-    print("distancce to goal(X): ",distance_to_goal_x)
-    print("distance to magma: ", distance_to_lava_x)
-
-    if distance_to_lava_x < 1:
-        magma_input = [1]
-    else:
-        magma_input = [0]
-
 
     if previous_distance_to_goal_x != None:
-        if previous_distance_to_goal_x >distance_to_goal_x:
+        if (previous_distance_to_goal_x-1) >distance_to_goal_x:
             agent.next_state(INPUT=magma_input, print_result=False,Cneg=False ,Cpos=True)
-            pass
+            print("Pleasure")
         else:
-            agent.next_state(INPUT=magma_input, print_result=False,Cneg=False ,Cpos=True)
-            pass
-
+            agent.next_state(INPUT=magma_input, print_result=False,Cneg=True ,Cpos=False)
+            print("Pain")
+    else:
+        print("error")
 
 
 
     previous_distance_to_goal_x = distance_to_goal_x
+    print("PDTG: ", previous_distance_to_goal_x)
     previous_distance_to_lava_x = distance_to_lava_x
     time.sleep(1)
