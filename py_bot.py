@@ -1,6 +1,7 @@
 from javascript import require, On, Once, AsyncTask, once, off
 from simple_chalk import chalk
-from random import randint
+import random
+import time
 
 mineflayer = require("mineflayer")
 mineflayer_pathfinder = require("mineflayer-pathfinder")
@@ -16,12 +17,6 @@ bot_name = "aolabs"
 
 def vec3_to_str(v):
     return f"x: {v['x']:.3f}, y: {v['y']:.3f}, z: {v['z']:.3f}"
-
-
-
-
-
-
 class Bot:
     def __init__(self):
         self.bot_args = {
@@ -64,10 +59,10 @@ class Bot:
         local_players = self.bot.players
 
         # Search for our specific player
-        for el in local_players:
-            player_data = local_players[el]
+        for i in local_players:
+            player_data = local_players[i]
             if player_data["uuid"] == player:
-                vec3_temp = local_players[el].entity.position
+                vec3_temp = local_players[i].entity.position
                 player_location = vec3(
                     vec3_temp["x"], vec3_temp["y"] + 1, vec3_temp["z"]
                 )
@@ -86,6 +81,7 @@ class Bot:
     def find_closest_block(self, block_name):
         #self.log("Searching for ", block_name)
         # Get the bot's current position
+        print("finding", block_name)
         current_position = self.bot.entity.position
         
         # Define search radius
@@ -109,12 +105,23 @@ class Bot:
 
         if closest_block:
             self.log(chalk.magenta(f"Closest {block_name} found at {vec3_to_str(closest_block)}"))
-            return closest_block
+            return vec3_to_str(closest_block)
         else:
-            self.log(f"{block_name} not found within radius {radius}.")
+            #self.log(f"{block_name} not found within radius {radius}.")
+            print("unable to find", block_name)
             return None
 
 
+    def get_surroundings(self):
+
+        bot_position = self.bot.entity.position
+        
+        pos = [bot_position.x,  bot_position.y, bot_position.z]
+        health = self.bot.health
+        dis_to_wood = self.find_closest_block("spruce_log")
+
+        surrondings = [pos, dis_to_wood, health, ]
+        return surrondings
     def start_events(self):
 
         @On(self.bot, "login")
@@ -197,6 +204,8 @@ class Bot:
                     else:
                         self.log("Please ask a block to find")
 
+                elif("wander") in message:
+                    self.random_wander()
         # End event: Triggers on disconnect from server
         @On(self.bot, "end")
         def end(this, reason):
@@ -216,4 +225,10 @@ class Bot:
             # Last event listener
             off(self.bot, "end", end)
 
-
+bot = Bot()
+time.sleep(5)
+while True:
+    
+    dis_to_goal = bot.find_closest_block("spruce_log")
+    print("dis", dis_to_goal)
+    time.sleep(5)
