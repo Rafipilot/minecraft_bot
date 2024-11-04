@@ -1,7 +1,12 @@
 from javascript import require, On, Once, AsyncTask, once, off
 from simple_chalk import chalk
-import random
+from arch__minecraft import arch
+import ao_core as ao
 import time
+
+
+agent = ao.Agent(arch, notes="Default Agent")
+
 
 mineflayer = require("mineflayer")
 mineflayer_pathfinder = require("mineflayer-pathfinder")
@@ -15,8 +20,16 @@ reconnect = True
 bot_name = "aolabs"
 
 
+
 def vec3_to_str(v):
     return f"x: {v['x']:.3f}, y: {v['y']:.3f}, z: {v['z']:.3f}"
+
+
+
+
+
+
+
 class Bot:
     def __init__(self):
         self.bot_args = {
@@ -52,6 +65,35 @@ class Bot:
         except Exception as e:
             self.log(f"Error while trying to run pathfind_to_goal: {e}")
 
+    def move(self, response):
+        # Reset all movement directions first to avoid unwanted motion
+        self.bot.setControlState('forward', False)
+        self.bot.setControlState('back', False)
+        self.bot.setControlState('left', False)
+        self.bot.setControlState('right', False)
+
+
+        # Define movement logic based on response values
+        if response == [1, 1]:
+            # Move forward
+            self.bot.setControlState('forward', True)
+            print("moving")
+        elif response == [1, 0]:
+            # Move right
+            self.bot.setControlState('right', True)
+            print("moving")
+        elif response == [0, 1]:
+            # Move left
+            self.bot.setControlState('left', True)
+            print("moving")
+        elif response == [0, 0]:
+            self.bot.setControlState('forward', True)
+            print("moving")
+        time.sleep(0.2)
+        self.bot.setControlState('forward', False)
+        self.bot.setControlState('back', False)
+        self.bot.setControlState('left', False)
+        self.bot.setControlState('right', False)
 
     def go_to_player(self, player):
     
@@ -105,7 +147,7 @@ class Bot:
 
         if closest_block:
             self.log(chalk.magenta(f"Closest {block_name} found at {vec3_to_str(closest_block)}"))
-            return vec3_to_str(closest_block)
+            return closest_block
         else:
             #self.log(f"{block_name} not found within radius {radius}.")
             print("unable to find", block_name)
@@ -122,6 +164,7 @@ class Bot:
 
         surrondings = [pos, dis_to_wood, health, ]
         return surrondings
+    
     def start_events(self):
 
         @On(self.bot, "login")
@@ -228,7 +271,44 @@ class Bot:
 bot = Bot()
 time.sleep(5)
 while True:
-    
-    dis_to_goal = bot.find_closest_block("spruce_log")
-    print("dis", dis_to_goal)
-    time.sleep(5)
+    magma_input = [0]
+    response = agent.next_state( INPUT=magma_input, print_result=False)
+    response = response.tolist()
+    print("response: ", response)
+    bot.move(response)
+
+    previous_distance_to_goal_x  = None
+    goal_pos = bot.find_closest_block("spruce_log") 
+    bot_pos = bot.bot.entity.position
+    bot_x = bot_pos.x
+    goal_x = goal_pos.x
+    distance_to_goal_x = abs(goal_x-bot_x)
+
+    previous_distance_to_lava_x = None
+    lava_pos = bot.find_closest_block("magma_block")
+    lava_x = lava_pos.x
+    distance_to_lava_x = abs(lava_x-bot_x)
+
+    print("distancce to goal(X): ",distance_to_goal_x)
+    print("distance to magma: ", distance_to_lava_x)
+
+    if distance_to_lava_x < 1:
+        magma_input = [1]
+    else:
+        magma_input = [0]
+
+
+    if previous_distance_to_goal_x != None:
+        if previous_distance_to_goal_x >distance_to_goal_x:
+            agent.next_state(INPUT=magma_input, print_result=False,Cneg=False ,Cpos=True)
+            pass
+        else:
+            agent.next_state(INPUT=magma_input, print_result=False,Cneg=False ,Cpos=True)
+            pass
+
+
+
+
+    previous_distance_to_goal_x = distance_to_goal_x
+    previous_distance_to_lava_x = distance_to_lava_x
+    time.sleep(1)
