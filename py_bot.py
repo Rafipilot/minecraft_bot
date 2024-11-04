@@ -271,11 +271,7 @@ class Bot:
 bot = Bot()
 time.sleep(5)
 while True:
-    magma_input = [0]
-    response = agent.next_state( INPUT=magma_input, print_result=False)
-    response = response.tolist()
-    print("response: ", response)
-    bot.move(response)
+
 
     previous_distance_to_goal_x  = None
     goal_pos = bot.find_closest_block("spruce_log") 
@@ -288,6 +284,12 @@ while True:
     lava_pos = bot.find_closest_block("magma_block")
     lava_x = lava_pos.x
     distance_to_lava_x = abs(lava_x-bot_x)
+
+    response = agent.next_state( INPUT=magma_input, print_result=False)
+    response = response.tolist()
+    print("response: ", response)
+    
+    bot.move(response)
 
     print("distancce to goal(X): ",distance_to_goal_x)
     print("distance to magma: ", distance_to_lava_x)
