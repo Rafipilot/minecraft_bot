@@ -1,8 +1,9 @@
 from javascript import require, On, Once, AsyncTask, once, off
-from simple_chalk import chalk
+#from simple_chalk import chalk
 from arch__minecraft import arch
 import ao_core as ao
 import time
+import math
 
 
 agent = ao.Agent(arch, notes="Default Agent")
@@ -65,6 +66,31 @@ class Bot:
         except Exception as e:
             self.log(f"Error while trying to run pathfind_to_goal: {e}")
 
+    def block_in_front(self, distance=1):
+        """
+        Finds the block directly in front of the bot at a specified distance.
+        """
+        # Get the bot's position and yaw (viewing angle)
+        position = self.bot.entity.position
+        yaw = self.bot.entity.yaw
+
+        # Calculate the direction vector for the yaw angle
+        dx = -math.sin(yaw) * distance
+        dz = math.cos(yaw) * distance
+
+        # Determine the target position
+        target_position = vec3(position.x + dx, position.y, position.z + dz)
+
+        # Get the block at the calculated position
+        block_in_front = self.bot.blockAt(target_position)
+
+        if block_in_front:
+            self.log((f"Block in front is {block_in_front.displayName} at {vec3_to_str(target_position)}"))
+            return block_in_front
+        else:
+            self.log("No block found in front.")
+            return None
+
     def move(self, response):
         # Reset all movement directions first to avoid unwanted motion
         self.bot.setControlState('forward', False)
@@ -112,7 +138,7 @@ class Bot:
         # Feedback
         if player_location:
             self.log(
-                chalk.magenta(
+                (
                     f"Pathfinding to player at {vec3_to_str(player_location)}"
                 )
             )
@@ -146,7 +172,7 @@ class Bot:
                             closest_block = block.position
 
         if closest_block:
-            self.log(chalk.magenta(f"Closest {block_name} found at {vec3_to_str(closest_block)}"))
+            self.log((f"Closest {block_name} found at {vec3_to_str(closest_block)}"))
             return closest_block
         else:
             #self.log(f"{block_name} not found within radius {radius}.")
@@ -172,7 +198,7 @@ class Bot:
             # Displays which server you are currently connected to
             self.bot_socket = self.bot._client.socket
             self.log(
-                chalk.green(
+                (
                     f"Logged in to {self.bot_socket.server if self.bot_socket.server else self.bot_socket._host }"
                 )
             )
@@ -186,7 +212,7 @@ class Bot:
         @On(self.bot, "kicked")
         def kicked(this, reason, loggedIn):
             if loggedIn:
-                self.log(chalk.redBright(f"Kicked whilst trying to connect: {reason}"))
+                self.log((f"Kicked whilst trying to connect: {reason}"))
 
 
             # Chat event: Triggers on chat message
@@ -210,7 +236,7 @@ class Bot:
 
                     # Feedback
                     if player_location:
-                        self.log(chalk.magenta(vec3_to_str(player_location)))
+                        self.log((vec3_to_str(player_location)))
                         self.bot.lookAt(player_location)
                     else:
                         self.log(f"Player not found.")
@@ -223,7 +249,7 @@ class Bot:
 
                     # Feedback
                     block_vec3 = vec3(x, y, z)
-                    self.log(chalk.magenta(vec3_to_str(block_vec3)))
+                    self.log((vec3_to_str(block_vec3)))
                     self.bot.lookAt(block_vec3, True)
 
                 # Say which block the bot is looking at
@@ -252,7 +278,7 @@ class Bot:
         # End event: Triggers on disconnect from server
         @On(self.bot, "end")
         def end(this, reason):
-            self.log(chalk.red(f"Disconnected: {reason}"))
+            self.log((f"Disconnected: {reason}"))
 
             # Turn off old events
             off(self.bot, "login", login)
@@ -262,7 +288,7 @@ class Bot:
 
             # Reconnect
             if self.reconnect:
-                self.log(chalk.cyanBright(f"Attempting to reconnect"))
+                self.log((f"Attempting to reconnect"))
                 self.start_bot()
 
             # Last event listener
@@ -271,7 +297,7 @@ class Bot:
 bot = Bot()
 time.sleep(5)
 while True:
-    magma_input = [0]
+    magma_input = [1]
     response = agent.next_state( INPUT=magma_input, print_result=False)
     response = response.tolist()
     print("response: ", response)
@@ -284,18 +310,16 @@ while True:
     goal_x = goal_pos.x
     distance_to_goal_x = abs(goal_x-bot_x)
 
-    previous_distance_to_lava_x = None
-    lava_pos = bot.find_closest_block("magma_block")
-    lava_x = lava_pos.x
-    distance_to_lava_x = abs(lava_x-bot_x)
-
-    print("distancce to goal(X): ",distance_to_goal_x)
-    print("distance to magma: ", distance_to_lava_x)
-
-    if distance_to_lava_x < 1:
+    block_in_front = bot.block_in_front()
+    if block_in_front == "magma_block":
         magma_input = [1]
     else:
         magma_input = [0]
+
+    print("distancce to goal(X): ",distance_to_goal_x)
+    print("Magma input: ", magma_input)
+
+ 
 
 
     if previous_distance_to_goal_x != None:
@@ -310,5 +334,4 @@ while True:
 
 
     previous_distance_to_goal_x = distance_to_goal_x
-    previous_distance_to_lava_x = distance_to_lava_x
     time.sleep(1)
