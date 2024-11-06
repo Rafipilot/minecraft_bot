@@ -1,12 +1,12 @@
 from javascript import require, On, Once, AsyncTask, once, off
 #from simple_chalk import chalk
-from arch__minecraft import arch
+from arch__minecraft import Arch
 import ao_core as ao
 import time
 import math
 
 
-agent = ao.Agent(arch, notes="Default Agent")
+agent = ao.Agent(Arch, notes="Default Agent")
 
 
 mineflayer = require("mineflayer")
