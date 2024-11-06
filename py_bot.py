@@ -359,9 +359,8 @@ while True:
     surroudings = bot.data()
     
     
+    goal_pos_x = 15 #Goal is X pos 15
 
-
-    goal_pos_x = 15
     distance_to_goal_x = abs(goal_pos_x - bot_position.x)
     print("distance", distance_to_goal_x)
     
@@ -381,7 +380,7 @@ while True:
     bot.move(response)
     if isStuck == True:
         print("Bot Stuck")
-        label = [1,1]
+        label = [1,1]  #Telling it to move to the right if its stuck
         agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
         
 
@@ -390,17 +389,17 @@ while True:
         if previous_distance_to_goal_x!=None:
             print(previous_distance_to_goal_x)
             if previous_distance_to_goal_x> distance_to_goal_x:
-                label = response
+                label = response # Telling it to keep doing same thing
                 agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
                 print("Pleasure signal: Getting closer to goal!")
             else:
-                label = [0,1]
+                label = [0,1] #Telling it to move forward
                 agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
                 print("Pain signal: Moving away from goal!")
         else:
             print(previous_distance_to_goal_x)
 
     
-    previous_distance_to_goal_x = distance_to_goal_x
+    previous_distance_to_goal_x = distance_to_goal_x # updating prev distance
     time.sleep(2)
     pass
