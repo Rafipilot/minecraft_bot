@@ -357,34 +357,48 @@ while True:
 
     
     surroudings = bot.data()
-    print(surroudings)
     
-    response = agent.next_state(INPUT=surroudings, print_result=False).tolist()
-    print("response: ", response)
-    bot.move(response)
+    
+
 
     goal_pos_x = 15
     distance_to_goal_x = abs(goal_pos_x - bot_position.x)
     print("distance", distance_to_goal_x)
     
     if previous_distance_to_goal_x == distance_to_goal_x:
+        isStuck = True
+        surroudings.append(1)
+        print(surroudings)
+    else:
+        isStuck = False
+        surroudings.append(0)
+        print(surroudings)
+
+    response = agent.next_state(INPUT=surroudings, print_result=False).tolist()
+    print("response: ", response)
+
+
+    bot.move(response)
+    if isStuck == True:
         print("Bot Stuck")
         label = [1,1]
         agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
+        
 
-
-    if previous_distance_to_goal_x!=None:
-        print(previous_distance_to_goal_x)
-        if previous_distance_to_goal_x> distance_to_goal_x:
-            label = response
-            agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
-            print("Pleasure signal: Getting closer to goal!")
-        else:
-
-            agent.next_state(INPUT=surroudings, print_result=False, Cneg=True, Cpos = False)
-            print("Pain signal: Moving away from goal!")
     else:
-        print(previous_distance_to_goal_x)
+
+        if previous_distance_to_goal_x!=None:
+            print(previous_distance_to_goal_x)
+            if previous_distance_to_goal_x> distance_to_goal_x:
+                label = response
+                agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
+                print("Pleasure signal: Getting closer to goal!")
+            else:
+                label = [0,1]
+                agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
+                print("Pain signal: Moving away from goal!")
+        else:
+            print(previous_distance_to_goal_x)
 
     
     previous_distance_to_goal_x = distance_to_goal_x
