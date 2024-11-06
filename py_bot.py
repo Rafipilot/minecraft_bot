@@ -1,5 +1,4 @@
 from javascript import require, On, Once, AsyncTask, once, off
-#from simple_chalk import chalk
 from arch__minecraft import Arch
 import ao_core as ao
 import time
@@ -15,21 +14,14 @@ mineflayer_pathfinder = require("mineflayer-pathfinder")
 
 vec3 = require("vec3")
 
-server_host = "localhost" #Note: we can change to server later
+server_host = "localhost" #Note: we can change to server later( I think)
 server_port = 3000
 reconnect = True
 bot_name = "aolabs"
 
 
-
 def vec3_to_str(v):
     return f"x: {v['x']:.3f}, y: {v['y']:.3f}, z: {v['z']:.3f}"
-
-
-
-
-
-
 
 class Bot:
     def __init__(self):
@@ -67,9 +59,7 @@ class Bot:
             self.log(f"Error while trying to run pathfind_to_goal: {e}")
 
     def data(self):
-        """
-        Gathers input data for the neural network by checking if there are obstacles in front, left, and right.
-        """
+ 
         # Check for a block directly in front
         if self.block_in_front() == True:
             block_in_front = 1 
@@ -97,10 +87,7 @@ class Bot:
         return surroundings
 
     def block_in_front(self, distance=1):
-        """
-        Checks if there's a block in front of the bot within a range.
-        The forward direction is flipped by reversing dx and dz to correct orientation issues.
-        """
+
         # Bot's current position and yaw (viewing angle)
         position = self.bot.entity.position
         yaw = self.bot.entity.yaw
@@ -180,7 +167,7 @@ class Bot:
         else:
             self.log(f"Player not found.")
 
-    def find_closest_block(self, block_name):
+    def find_closest_block(self, block_name):  #finds closest block given the name of it
         #self.log("Searching for ", block_name)
         # Get the bot's current position
         print("finding", block_name)
@@ -264,8 +251,7 @@ class Bot:
         @On(self.bot, "death")
         def death(this):
             self.log("Bot has died!")
-            agent.next_state(INPUT=surroudings, print_result=False, Cpos=False, Cneg= 
-                             True).tolist()
+
 
             # Chat event: Triggers on chat message
         @On(self.bot, "messagestr")
