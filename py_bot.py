@@ -141,14 +141,14 @@ class Bot:
         elif response == [1, 0]:
             # Move right
             self.bot.setControlState('right', True)
-            print("moving")
+
         elif response == [0, 1]:
             # Move left
             self.bot.setControlState('left', True)
-            print("moving")
+
         elif response == [0, 0]:
             self.bot.setControlState('forward', True)
-            print("moving")
+
         time.sleep(0.2)
         self.bot.setControlState('forward', False)
         self.bot.setControlState('back', False)
@@ -351,27 +351,37 @@ time.sleep(5)
 
 
 previous_distance_to_goal_x = None
+isStuck = False
 while True:
     bot_position = bot.bot.entity.position
 
     
     surroudings = bot.data()
     print(surroudings)
+    
     response = agent.next_state(INPUT=surroudings, print_result=False).tolist()
+    print("response: ", response)
     bot.move(response)
 
     goal_pos_x = 15
-
     distance_to_goal_x = abs(goal_pos_x - bot_position.x)
-    print("distanme", distance_to_goal_x)
+    print("distance", distance_to_goal_x)
+    
+    if previous_distance_to_goal_x == distance_to_goal_x:
+        print("Bot Stuck")
+        label = [1,1]
+        agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
+
+
     if previous_distance_to_goal_x!=None:
         print(previous_distance_to_goal_x)
         if previous_distance_to_goal_x> distance_to_goal_x:
-            agent.next_state(INPUT=surroudings, print_result=False, Cneg=False, Cpos=True)
+            label = response
+            agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
             print("Pleasure signal: Getting closer to goal!")
-
         else:
-            agent.next_state(INPUT=surroudings, print_result=False, Cneg=True, Cpos=False)
+
+            agent.next_state(INPUT=surroudings, print_result=False, Cneg=True, Cpos = False)
             print("Pain signal: Moving away from goal!")
     else:
         print(previous_distance_to_goal_x)
