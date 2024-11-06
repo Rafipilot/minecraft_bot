@@ -66,30 +66,64 @@ class Bot:
         except Exception as e:
             self.log(f"Error while trying to run pathfind_to_goal: {e}")
 
+    def data(self):
+        """
+        Gathers input data for the neural network by checking if there are obstacles in front, left, and right.
+        """
+        # Check for a block directly in front
+        if self.block_in_front() == True:
+            block_in_front = 1 
+        else:
+            block_in_front = 0
+
+        # Check for a block slightly to the left
+        self.bot.lookAt(vec3(self.bot.entity.position.x - 1, self.bot.entity.position.y, self.bot.entity.position.z))
+        if self.block_in_front()  == True:
+            block_left = 1 
+        else:
+            block_left = 0
+
+        # Check for a block slightly to the right
+        self.bot.lookAt(vec3(self.bot.entity.position.x + 1, self.bot.entity.position.y, self.bot.entity.position.z))
+        if self.block_in_front()  == True:
+            block_right = 1 
+        else:
+            block_right = 0
+
+        # Return surroundings as a list
+        surroundings = [block_in_front, block_left ,block_right]
+        self.bot.lookAt(vec3(self.bot.entity.position.x, self.bot.entity.position.y, self.bot.entity.position.z))  # Reset the look direction
+
+        return surroundings
+
     def block_in_front(self, distance=1):
         """
-        Finds the block directly in front of the bot at a specified distance.
+        Checks if there's a block in front of the bot within a range.
+        The forward direction is flipped by reversing dx and dz to correct orientation issues.
         """
-        # Get the bot's position and yaw (viewing angle)
+        # Bot's current position and yaw (viewing angle)
         position = self.bot.entity.position
         yaw = self.bot.entity.yaw
 
-        # Calculate the direction vector for the yaw angle
-        dx = -math.sin(yaw) * distance
-        dz = math.cos(yaw) * distance
+        # Flip the direction vector to correct orientation
+        dx = math.sin(yaw) * distance
+        dz = -math.cos(yaw) * distance
 
-        # Determine the target position
+        # Calculate the target position directly in front of the bot
         target_position = vec3(position.x + dx, position.y, position.z + dz)
 
-        # Get the block at the calculated position
+        # Check the block at the target position
         block_in_front = self.bot.blockAt(target_position)
 
-        if block_in_front:
-            self.log((f"Block in front is {block_in_front.displayName} at {vec3_to_str(target_position)}"))
-            return block_in_front
-        else:
-            self.log("No block found in front.")
-            return None
+        if block_in_front and block_in_front.displayName != "Air":
+            print("Detected block in front:", block_in_front.displayName)
+            return True
+
+        print("No block detected in front.")
+        return False
+
+
+
 
     def move(self, response):
         # Reset all movement directions first to avoid unwanted motion
@@ -204,9 +238,21 @@ class Bot:
             )
 
                 # Spawn event: Triggers on bot entity spawn
+
         @On(self.bot, "spawn")
         def spawn(this):
-            self.bot.chat("Hi!")
+            self.log("Bot spawned. Checking readiness to teleport...")
+
+            # Make sure the bot is ready
+            if this.entity:  # Check if the bot has an entity
+                self.log("Teleporting to coordinates (8.5, -60, -3.5)...")
+                # Use this.entity.position to teleport
+                this.entity.position.set(8.5, -60, -3.5)
+                this.chat("Hi!")
+            else:
+                self.log("Bot entity not ready for teleportation.")
+
+            self.bot.lookAt(vec3(11.8, -58, -3.7))
 
                 # Kicked event: Triggers on kick from server
         @On(self.bot, "kicked")
@@ -214,6 +260,12 @@ class Bot:
             if loggedIn:
                 self.log((f"Kicked whilst trying to connect: {reason}"))
 
+
+        @On(self.bot, "death")
+        def death(this):
+            self.log("Bot has died!")
+            agent.next_state(INPUT=surroudings, print_result=False, Cpos=False, Cneg= 
+                             True).tolist()
 
             # Chat event: Triggers on chat message
         @On(self.bot, "messagestr")
@@ -296,45 +348,35 @@ class Bot:
 
 bot = Bot()
 time.sleep(5)
-previous_distance_to_goal_x  = None
-if input("start: ") == "yes":
 
-    while True:
-        magma_input = [1]
-        response = agent.next_state( INPUT=magma_input, print_result=False)
-        response = response.tolist()
-        print("response: ", response)
-        bot.move(response)
 
-        
-        goal_pos = bot.find_closest_block("spruce_log") 
-        bot_pos = bot.bot.entity.position
-        bot_x = bot_pos.x
-        goal_x = goal_pos.x
-        distance_to_goal_x = abs(goal_x-bot_x)
-
-        block_in_front = bot.block_in_front()
-        if block_in_front == "magma_block":
-            magma_input = [1]
-        else:
-            magma_input = [0]
-
-        print("distancce to goal(X): ",distance_to_goal_x)
-        print("Magma input: ", magma_input)
+previous_distance_to_goal_x = None
+while True:
+    bot_position = bot.bot.entity.position
 
     
+    surroudings = bot.data()
+    print(surroudings)
+    response = agent.next_state(INPUT=surroudings, print_result=False).tolist()
+    bot.move(response)
 
+    goal_pos_x = 15
 
-        if previous_distance_to_goal_x != None:
-            if previous_distance_to_goal_x >distance_to_goal_x:
-                agent.next_state(INPUT=magma_input, print_result=False,Cneg=False ,Cpos=True)
-                print("pleasure")
-            else:
-                agent.next_state(INPUT=magma_input, print_result=False,Cneg=False ,Cpos=True)
-                print("pain")
+    distance_to_goal_x = abs(goal_pos_x - bot_position.x)
+    print("distanme", distance_to_goal_x)
+    if previous_distance_to_goal_x!=None:
+        print(previous_distance_to_goal_x)
+        if previous_distance_to_goal_x> distance_to_goal_x:
+            agent.next_state(INPUT=surroudings, print_result=False, Cneg=False, Cpos=True)
+            print("Pleasure signal: Getting closer to goal!")
 
+        else:
+            agent.next_state(INPUT=surroudings, print_result=False, Cneg=True, Cpos=False)
+            print("Pain signal: Moving away from goal!")
+    else:
+        print(previous_distance_to_goal_x)
 
-
-
+    
     previous_distance_to_goal_x = distance_to_goal_x
-    time.sleep(1)
+    time.sleep(2)
+    pass
