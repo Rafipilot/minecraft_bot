@@ -336,7 +336,7 @@ bot = Bot()
 time.sleep(5)
 
 
-previous_distance_to_goal_x = None
+previous_distance_to_goal_x = 0
 isStuck = False
 while True:
     bot_position = bot.bot.entity.position
@@ -350,7 +350,7 @@ while True:
     distance_to_goal_x = abs(goal_pos_x - bot_position.x)
     print("distance", distance_to_goal_x)
     
-    if previous_distance_to_goal_x == distance_to_goal_x:
+    if round(previous_distance_to_goal_x, 1) == round(distance_to_goal_x, 1) and response != [1,1]:
         isStuck = True
         surroudings.append(1)
         print(surroudings)
@@ -372,7 +372,7 @@ while True:
 
     else:
 
-        if previous_distance_to_goal_x!=None:
+        if previous_distance_to_goal_x!=0:
             print(previous_distance_to_goal_x)
             if previous_distance_to_goal_x> distance_to_goal_x:
                 label = response # Telling it to keep doing same thing
