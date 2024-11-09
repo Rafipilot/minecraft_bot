@@ -374,7 +374,7 @@ while True:
 
         if previous_distance_to_goal_x!=0:
             print(previous_distance_to_goal_x)
-            if previous_distance_to_goal_x> distance_to_goal_x:
+            if round(previous_distance_to_goal_x,2)> round(distance_to_goal_x,2):
                 label = response # Telling it to keep doing same thing
                 agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
                 print("Pleasure signal: Getting closer to goal!")
