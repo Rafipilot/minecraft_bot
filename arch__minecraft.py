@@ -14,7 +14,7 @@ import numpy as np
 description = "Basic Recommender System"
 
 #genre, length
-arch_i = [1, 1, 1, 1]   
+arch_i = [1, 1]   
 arch_z = [1,1 ]           
 arch_c = [0]           
 connector_function = "full_conn"

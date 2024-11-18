@@ -59,30 +59,27 @@ class Bot:
             self.log(f"Error while trying to run pathfind_to_goal: {e}")
 
     def data(self):
- 
+        surroundings = [0]
         # Check for a block directly in front
         if self.block_in_front() == True:
-            block_in_front = 1 
-        else:
-            block_in_front = 0
+            surroundings = [1]
 
         # Check for a block slightly to the left
         self.bot.lookAt(vec3(self.bot.entity.position.x - 1, self.bot.entity.position.y, self.bot.entity.position.z))
         if self.block_in_front()  == True:
-            block_left = 1 
+            surroundings = [1]
         else:
             block_left = 0
 
         # Check for a block slightly to the right
         self.bot.lookAt(vec3(self.bot.entity.position.x + 1, self.bot.entity.position.y, self.bot.entity.position.z))
         if self.block_in_front()  == True:
-            block_right = 1 
-        else:
-            block_right = 0
+            surroundings = [1]
 
-        # Return surroundings as a list
-        surroundings = [block_in_front, block_left ,block_right]
+
         self.bot.lookAt(vec3(self.bot.entity.position.x, self.bot.entity.position.y, self.bot.entity.position.z))  # Reset the look direction
+
+
 
         return surroundings
 
@@ -201,17 +198,7 @@ class Bot:
             return None
 
 
-    def get_surroundings(self):
 
-        bot_position = self.bot.entity.position
-        
-        pos = [bot_position.x,  bot_position.y, bot_position.z]
-        health = self.bot.health
-        dis_to_wood = self.find_closest_block("spruce_log")
-
-        surrondings = [pos, dis_to_wood, health, ]
-        return surrondings
-    
     def start_events(self):
 
         @On(self.bot, "login")
@@ -364,12 +351,12 @@ while True:
 
 
     bot.move(response)
-    if isStuck == True:
-        print("Bot Stuck")
+    
+
+    if surroudings[0] == 1:
+        print("detected and telling bot to go around")
         label = [1,1]  #Telling it to move to the right if its stuck
         agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
-        
-
     else:
 
         if previous_distance_to_goal_x!=0:
@@ -380,12 +367,12 @@ while True:
                 print("Pleasure signal: Getting closer to goal!")
             else:
                 label = [0,1] #Telling it to move forward
+                
                 agent.next_state(INPUT=surroudings, print_result=False, LABEL=label)
-                print("Pain signal: Moving away from goal!")
+                print("Label: go towards goal")
         else:
             print(previous_distance_to_goal_x)
 
     
     previous_distance_to_goal_x = distance_to_goal_x # updating prev distance
     time.sleep(2)
-    pass
